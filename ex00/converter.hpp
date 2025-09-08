@@ -6,17 +6,19 @@
 /*   By: yel-bouk <yel-bouk@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/06 16:13:01 by yel-bouk          #+#    #+#             */
-/*   Updated: 2025/09/07 15:51:40 by yel-bouk         ###   ########.fr       */
+/*   Updated: 2025/09/08 11:08:57 by yel-bouk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include <iostream>
-# include <iomanip>
 # include <exception>
 # include <cstdlib>
 # include <limits>
 # include <cmath>
 # include <string>
+#include  <cstdio>
+#include <cerrno>
+#include <climits>
 
 # define MIN_INT std::numeric_limits<int>::min() //-2147483648
 # define MAX_INT std::numeric_limits<int>::max() //2147483647

@@ -6,16 +6,11 @@
 /*   By: yel-bouk <yel-bouk@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/06 16:12:58 by yel-bouk          #+#    #+#             */
-/*   Updated: 2025/09/08 05:02:16 by yel-bouk         ###   ########.fr       */
+/*   Updated: 2025/09/08 11:11:32 by yel-bouk         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "converter.hpp"
-#include  <cstdio>
-#include <string>
-#include <cstdlib>
-#include <cerrno>
-#include <climits>
 
 
 ScalarConverter::ScalarConverter()
@@ -46,14 +41,14 @@ static bool isChar(const std::string&literal)
 	{
 		return true;
 	}
-    if (literal.length() == 3 && !std::isdigit(literal[1])
+	if (literal.length() == 3 && !std::isdigit(literal[1])
 		&& literal[0] == '\'' && literal[2] == '\'' && std::isprint(literal[1]))
 	{
 		return true;
 	}
-    if (literal.length() == 3 && literal[0] == '"' && !std::isdigit(literal[1]) 
+	if (literal.length() == 3 && literal[0] == '"' && !std::isdigit(literal[1]) 
 		&& literal[2] == '"' && std::isprint(literal[1]))
-    {
+	{
 		return true;
 	}
 	return false;
@@ -61,54 +56,48 @@ static bool isChar(const std::string&literal)
 
 static bool isInt(const std::string &literal)
 {
-    if (literal.empty())
-        return false;
+	if (literal.empty())
+		return false;
 
-    char *endptr;
-    errno = 0;
-    long val = strtol(literal.c_str(), &endptr, 10);
+	char *endptr;
+	errno = 0;
+	long val = strtol(literal.c_str(), &endptr, 10);
 
-    if (*endptr != '\0' || endptr == literal.c_str())
+	if (*endptr != '\0' || endptr == literal.c_str())
 	{
 		return false;	
 	}
 
-	if (errno == ERANGE || val > INT_MAX || val < INT_MIN)
-        return false;
+	if (errno == ERANGE || val > MAX_INT || val < MIN_INT)
+		return false;
 
-    return true;
+	return true;
 }
 
 static bool isSpecialFloat(const std::string &literal)
 {
-    return literal == "nanf" || literal == "+inff" || literal == "-inff" || literal == "inff";
+	return literal == "nanf" || literal == "+inff" || literal == "-inff" || literal == "inff";
 }
 
 static bool isFloat(const std::string& literal)
 {
-    // Handle special float literals
-    if (isSpecialFloat(literal))
-        return true;
+	if (isSpecialFloat(literal))
+		return true;
 
-    // Fix: check if the last character is 'f'
-    if (literal.length() < 2 || literal[literal.length() - 1] != 'f')
-        return false;
+	if (literal.length() < 2 || literal[literal.length() - 1] != 'f')
+		return false;
 
-    std::string core = literal.substr(0, literal.length() - 1); // Remove 'f'
-    if (core.empty())
-        return false;
-
-    char *endptr;
-    errno = 0;
-    std::strtof(core.c_str(), &endptr);  
-	
-    // Check that all of the core string was consumed and at least one digit was parsed
-    if (*endptr != '\0' || endptr == core.c_str())
-        return false;
-    // Check for overflow/underflow (not NaN, not Inf)
-    if (errno == ERANGE)
-        return false;
-    return true;
+	std::string core = literal.substr(0, literal.length() - 1);
+	if (core.empty())
+		return false;
+	char *endptr;
+	errno = 0;
+	std::strtof(core.c_str(), &endptr);  
+	if (*endptr != '\0' || endptr == core.c_str())
+		return false;
+	if (errno == ERANGE)
+		return false;
+	return true;
 }
 
 static	bool isPseudoLiteral(const std::string &literal)
@@ -118,36 +107,31 @@ static	bool isPseudoLiteral(const std::string &literal)
 
 static bool isDouble(const std::string& literal)
 {
-    // Handle special double literals
-    if (isPseudoLiteral(literal))
-        return true;
-
-    if (literal.empty())
-        return false;
-    char *endptr;
-    errno = 0;
+	if (isPseudoLiteral(literal))
+		return true;
+	if (literal.empty())
+		return false;
+	char *endptr;
+	errno = 0;
 	std::strtod(literal.c_str(), &endptr);
-
-    if (*endptr != '\0' || endptr == literal.c_str())
-        return false;
-
-    if (errno == ERANGE)
-        return false;
-
-    return true;
+	if (*endptr != '\0' || endptr == literal.c_str())
+		return false;
+	if (errno == ERANGE)
+		return false;
+	return true;
 }
 
 void ScalarConverter::convert(const std::string& literal)
 {
-    if (isChar(literal)) {
-        // Parse as char, convert to int, float, double
+	if (isChar(literal)) 
+	{
 		printf("char: '%c'\n", literal[0]);
 		printf("int: %d\n", static_cast<int>(literal[0]));
 		printf("float: %.1ff\n", static_cast<float>(literal[0]));
 		printf("double: %.1f\n", static_cast<double>(literal[0]));	
-        // Print in required format
-    } else if (isInt(literal)) {
-        // Parse as int, convert to char, float, double
+	}
+	else if (isInt(literal))
+	{
 		int intValue = std::atoi(literal.c_str());
 		if (std::isprint(intValue))
 			printf("char: '%c'\n", static_cast<char>(intValue));
@@ -156,32 +140,31 @@ void ScalarConverter::convert(const std::string& literal)
 		printf("int: %d\n", intValue);
 		printf("float: %.1ff\n", static_cast<float>(intValue));
 		printf("double: %.1f\n", static_cast<double>(intValue));
-        // Print
-    } else if (isFloat(literal)) {
-        // Parse as float, convert to char, int, double
+	}
+	else if (isFloat(literal))
+	{
 		char *endptr;
-    	
 		float floatValue = std::strtof(literal.c_str(), &endptr);  
 		if (std::isprint(static_cast<int>(floatValue)))
 			printf("char: '%c'\n", static_cast<char>(floatValue));
 		else
 			printf("char: Non displayable\n");
-		if (floatValue > INT_MAX || floatValue < INT_MIN || std::isnan(floatValue))
+		if (floatValue > MAX_INT || floatValue < MIN_INT || std::isnan(floatValue))
 			printf("int: impossible\n");
 		else
 			printf("int: %d\n", static_cast<int>(floatValue));
 		printf("float: %.1ff\n", floatValue);
 		printf("double: %.1f\n", static_cast<double>(floatValue));
-        // Print
-    } else if (isDouble(literal)) {
-        // Parse as double, convert to char, int, float
+	}
+	else if (isDouble(literal))
+	{
 		char *endptr;
 		double doubleValue = std::strtod(literal.c_str(), &endptr);
 		if (std::isprint(static_cast<int>(doubleValue)))
 			printf("char: '%c'\n", static_cast<char>(doubleValue));
 		else
 			printf("char: Non displayable\n");
-		if (doubleValue > INT_MAX || doubleValue < INT_MIN || std::isnan(doubleValue))
+		if (doubleValue > MAX_INT || doubleValue < MAX_INT || std::isnan(doubleValue))
 			printf("int: impossible\n");
 		else
 			printf("int: %d\n", static_cast<int>(doubleValue));
@@ -190,14 +173,14 @@ void ScalarConverter::convert(const std::string& literal)
 		else
 			printf("float: %.1ff\n", static_cast<float>(doubleValue));
 		printf("double: %.1f\n", doubleValue);
-        // Print
-    } else {
-        // Print all as impossible
+	}
+	else
+	{
 		printf("char: impossible\n");
 		printf("int: impossible\n");
 		printf("float: impossible\n");
 		printf("double: impossible\n");
-    }
+	}
 }
 
 int main (int argc, char **argv)
@@ -207,14 +190,6 @@ int main (int argc, char **argv)
 		std::cerr << "Usage: ./converter <literal>" << std::endl;
 		return 1;
 	}
-	// bool results = isChar(argv[1]);
-	// bool results2 = isInt(argv[1]);
-	// bool results3 = isFloat(argv[1]);
-	// bool results4 = isDouble(argv[1]);
-	// printf("isInt: %d\n", results2);
-	// printf("isChar: %d\n", results);
-	// printf("isFloat: %d\n", results3);
-	// printf("isDouble: %d\n", results4);
 	ScalarConverter::convert(argv[1]);
 	return 0;
 }
